@@ -1,0 +1,42 @@
+# ---------- Visual Studio ----------
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+ipch/
+[Dd]ebug/
+[Rr]elease/
+x64/
+[Bb]in/
+[Oo]bj/
+*.obj
+*.pdb
+*.ilk
+*.exp
+*.lib
+*.idb
+*.ipch
+*.tlog
+*.lastbuildstate
+
+# ---------- 编译产物 / 运行时二进制 ----------
+*.exe
+*.dll
+*.def
+*.tmp
+
+# ---------- 压缩包 ----------
+*.zip
+*.rar
+*.7z
+
+# ---------- vcpkg ----------
+vcpkg_installed/
+
+# ---------- 发布包(不入库) ----------
+Breakout_Portable_Roadshow/
+
+# ---------- 游戏运行时数据 ----------
+highscore.dat
+leaderboard.txt

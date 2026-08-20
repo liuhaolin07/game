@@ -1,0 +1,3 @@
+[*.{cpp,h,hpp,c,cc}]
+# Project-specific preferences
+cpp_graphics_library = raylib
