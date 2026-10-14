@@ -1,4 +1,4 @@
-#include "game.h"
+ï»¿#include "game.h"
 
 #include <conio.h>
 #include <windows.h>
@@ -24,7 +24,7 @@ void SetupConsoleUi()
         return;
     }
 
-    // »Ö¸´Ô­À´×ÖÌå
+    // æ¢å¤åŸæ¥å­—ä½“
     CONSOLE_FONT_INFOEX fontInfo = {};
     fontInfo.cbSize = sizeof(fontInfo);
     fontInfo.dwFontSize.X = 12;
@@ -34,7 +34,7 @@ void SetupConsoleUi()
     wcscpy_s(fontInfo.FaceName, L"Consolas");
     SetCurrentConsoleFontEx(hOut, FALSE, &fontInfo);
 
-    // »Ö¸´Ô­À´»º³åÇøºÍ´°¿Ú
+    // æ¢å¤åŸæ¥ç¼“å†²åŒºå’Œçª—å£
     COORD bufferSize = { 140, 80 };
     SetConsoleScreenBufferSize(hOut, bufferSize);
 
@@ -92,10 +92,10 @@ void UpdateLeaderboard(std::vector<RankEntry>& ranks, const std::string& name, i
 
 void PrintLeaderboard(const std::vector<RankEntry>& ranks)
 {
-    std::cout << "===== ÅÅĞĞ°ñ Top 10 =====\n";
+    std::cout << "===== æ’è¡Œæ¦œ Top 10 =====\n";
     if (ranks.empty())
     {
-        std::cout << "ÔİÎŞ¼ÇÂ¼\n";
+        std::cout << "æš‚æ— è®°å½•\n";
     }
     else
     {
@@ -116,9 +116,9 @@ bool WaitForPlayerStart(const std::vector<RankEntry>& ranks)
         std::cout << "            TETRIS\n";
         std::cout << "==============================\n\n";
         PrintLeaderboard(ranks);
-        std::cout << "\n1 / Enter / S : ¿ªÊ¼ÓÎÏ·\n";
-        std::cout << "Q / Esc       : ÍË³ö\n\n";
-        std::cout << "ÇëÑ¡Ôñ£º";
+        std::cout << "\n1 / Enter / S : å¼€å§‹æ¸¸æˆ\n";
+        std::cout << "Q / Esc       : é€€å‡º\n\n";
+        std::cout << "è¯·é€‰æ‹©ï¼š";
 
         int ch = _getch();
         if (ch == '1' || ch == 's' || ch == 'S' || ch == 13)
@@ -140,7 +140,7 @@ int main()
 
     std::system("cls");
     std::string playerName;
-    std::cout << "ÇëÊäÈëÍæ¼ÒÃû£¨ÎŞ¿Õ¸ñ£©: ";
+    std::cout << "è¯·è¾“å…¥ç©å®¶åï¼ˆæ— ç©ºæ ¼ï¼‰: ";
     std::getline(std::cin, playerName);
     if (playerName.empty())
     {
@@ -164,9 +164,14 @@ int main()
             int ch = _getch();
             if (ch == 0 || ch == 224)
             {
-                if (_kbhit())
+                // æ–¹å‘é”®ï¼šâ† å·¦ç§» â†’ å³ç§» â†‘ æ—‹è½¬ â†“ è½¯é™
+                const int arrow = _kbhit() ? _getch() : 0;
+                if (!paused)
                 {
-                    (void)_getch();
+                    if (arrow == 75) game.Step(Command::MoveLeft);
+                    else if (arrow == 77) game.Step(Command::MoveRight);
+                    else if (arrow == 72) game.Step(Command::RotateCW);
+                    else if (arrow == 80) game.Step(Command::SoftDrop);
                 }
                 continue;
             }
@@ -221,7 +226,7 @@ int main()
     std::cout << game.RenderText();
     std::cout << "\nGame Over! Final Score: " << game.Score() << "\n\n";
     PrintLeaderboard(ranks);
-    std::cout << "\n°´ÈÎÒâ¼üÍË³ö...";
+    std::cout << "\næŒ‰ä»»æ„é”®é€€å‡º...";
     (void)_getch();
 
     return 0;

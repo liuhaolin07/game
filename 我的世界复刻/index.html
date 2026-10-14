@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Minecraft.js — 体素沙盒</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden}
+body{
+  font-family:"Segoe UI","Microsoft YaHei",system-ui,sans-serif;
+  background:#000;user-select:none;-webkit-user-select:none;
+}
+#app{position:fixed;inset:0}
+#app canvas{display:block}
+
+/* ---------- 通用 ---------- */
+#gameui{position:fixed;inset:0;z-index:6;display:none;pointer-events:none}
+
+/* ---------- 准星 ---------- */
+.crosshair{position:absolute;left:50%;top:50%;width:20px;height:20px;transform:translate(-50%,-50%)}
+.crosshair i{position:absolute;background:#fff;mix-blend-mode:difference}
+.crosshair i:nth-child(1){left:50%;top:0;width:2px;height:100%;transform:translateX(-50%)}
+.crosshair i:nth-child(2){top:50%;left:0;height:2px;width:100%;transform:translateY(-50%)}
+
+/* ---------- 物品栏 ---------- */
+.hotbar{
+  position:absolute;left:50%;bottom:14px;transform:translateX(-50%);
+  display:flex;gap:4px;padding:4px;
+  background:rgba(0,0,0,.45);border:2px solid rgba(0,0,0,.6);border-radius:6px;
+}
+.slot{
+  position:relative;width:52px;height:52px;
+  background:rgba(255,255,255,.07);border:2px solid rgba(255,255,255,.16);
+  border-radius:4px;display:grid;place-items:center;transition:transform .1s,border-color .1s,background .1s;
+}
+.slot.sel{border-color:#fff;background:rgba(255,255,255,.24);transform:scale(1.1)}
+.slot .icon{width:40px;height:40px;image-rendering:pixelated}
+.slot .num{position:absolute;top:0;left:4px;font-size:10px;color:rgba(255,255,255,.5)}
+.slot .count{position:absolute;right:3px;bottom:1px;font-size:12px;font-weight:700;color:#fff;text-shadow:2px 2px 0 rgba(0,0,0,.75)}
+
+.item-name{
+  position:absolute;left:50%;bottom:78px;transform:translateX(-50%);
+  color:#fff;font-size:15px;font-weight:600;opacity:0;
+}
+.item-name.fade{animation:fadeName 1.4s ease-out forwards}
+@keyframes fadeName{0%{opacity:1}55%{opacity:1}100%{opacity:0}}
+
+/* ---------- 挖掘进度 ---------- */
+.mine-bar{
+  position:absolute;left:50%;top:calc(50% + 26px);transform:translateX(-50%);
+  width:90px;height:6px;background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.25);
+  border-radius:3px;overflow:hidden;
+}
+.mine-bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#8fe08f,#e8f58f);transition:width .05s linear}
+
+/* ---------- 气泡 / 提示 ---------- */
+.toast{
+  position:absolute;left:50%;top:14%;transform:translateX(-50%);
+  color:#fff;font-size:14px;opacity:0;text-align:center;
+}
+.toast.fade{animation:fadeToast 1.8s ease-out forwards}
+@keyframes fadeToast{0%{opacity:0;transform:translate(-50%,6px)}12%{opacity:1;transform:translate(-50%,0)}75%{opacity:1}100%{opacity:0}}
+
+/* ---------- 调试 ---------- */
+.debug{
+  position:absolute;top:8px;left:8px;color:#fff;font:12px/1.65 Consolas,monospace;
+  background:rgba(0,0,0,.55);padding:8px 11px;border-radius:4px;white-space:pre;
+}
+.vignette{
+  position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.28) 100%);
+}
+.water-overlay{
+  position:absolute;inset:0;pointer-events:none;
+  background:rgba(20,70,170,.34);
+}
+
+/* ---------- 开始菜单 ---------- */
+#menu{
+  position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:22px;
+  background:
+    linear-gradient(rgba(20,32,54,.86),rgba(10,16,28,.92)),
+    repeating-linear-gradient(45deg,#2b3a2b 0 24px,#33452f 24px 48px);
+}
+#menu h1{
+  font-size:clamp(34px,7vw,64px);font-weight:900;letter-spacing:3px;
+  color:#fff;text-shadow:5px 5px 0 #2b2b2b, 0 0 26px rgba(0,0,0,.6);
+}
+#menu h1 span{color:#7ee06a}
+#menu .tag{color:#cfe3c8;font-size:14px;letter-spacing:1px;margin-top:-14px}
+.mcbtn{
+  font-family:inherit;font-size:17px;font-weight:700;color:#fff;cursor:pointer;
+  padding:12px 54px;border:2px solid #000;border-radius:3px;
+  background:linear-gradient(#8fbf6a,#5f8f42);
+  box-shadow:inset 2px 2px 0 rgba(255,255,255,.35),inset -2px -2px 0 rgba(0,0,0,.3);
+}
+.mcbtn:hover{background:linear-gradient(#9fd07a,#6d9d4c)}
+.mcbtn:active{box-shadow:inset -2px -2px 0 rgba(255,255,255,.25),inset 2px 2px 0 rgba(0,0,0,.3)}
+#menu .keys{
+  color:#d8e4d2;font-size:12.5px;line-height:2;text-align:center;
+  background:rgba(0,0,0,.35);padding:14px 22px;border-radius:6px;max-width:560px;
+}
+#menu .keys b{color:#ffe98a}
+#menu .foot{color:#9fb096;font-size:11.5px}
+#loading{position:fixed;inset:0;z-index:30;display:grid;place-items:center;background:#0b111c;color:#9fd07a;font-size:15px}
+</style>
+</head>
+<body>
+
+<div id="app"></div>
+<div id="gameui"></div>
+
+<div id="loading">正在生成世界…</div>
+
+<div id="menu">
+  <div>
+    <h1 id="title">MINECRAFT<span>.JS</span></h1>
+    <div class="tag">纯浏览器体素沙盒 · 无任何外部素材</div>
+  </div>
+  <button class="mcbtn" id="playBtn">进入世界</button>
+  <div class="keys">
+    <b>WASD</b> 移动 · <b>空格</b> 跳跃 / 上浮 · <b>Shift</b> 潜行、飞行时下降<br>
+    <b>F</b> 或 <b>双击空格</b> 切换飞行 · <b>Ctrl</b> 疾跑<br>
+    <b>左键按住</b> 挖掘（进度条 + 材质音效，工具对口更快） · <b>右键</b> 放置<br>
+    <b>中键</b> 吸取方块 · <b>滚轮 / 1-9 / E</b> 切换物品 · <b>F3</b> 调试信息<br>
+    <b>- / =</b> 调渲染视距（2–16 区块）
+  </div>
+  <div class="foot">地形、洞穴、矿脉、光照、贴图全部由代码实时生成 · 进度自动存到浏览器</div>
+</div>
+
+<script type="importmap">
+{"imports":{
+  "three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js"
+}}
+</script>
+
+<script>
+  // file:// 下浏览器会用同源策略拦掉所有 ES 模块，页面只会白屏。
+  // 与其让人对着空白页发呆，不如直接指路：这个仓库里另有一份自包含的单文件版。
+  if (location.protocol === 'file:') {
+    document.addEventListener('DOMContentLoaded', function () {
+      var l = document.getElementById('loading');
+      if (!l) return;
+      l.style.color = '#ffd83d';
+      l.style.textAlign = 'center';
+      l.style.lineHeight = '2';
+      l.style.whiteSpace = 'pre-wrap';
+      l.innerHTML =
+        '这个文件不能直接双击打开。\n\n' +
+        '浏览器在 file:// 协议下会用同源策略拦掉所有 ES 模块，\n' +
+        '所以 <b>index.html</b> 只是给开发用的入口。\n\n' +
+        '👉 请改为双击同一目录下的 <b>minecraft.html</b>\n' +
+        '（单文件版，three.js 已内联，不需要服务器、不需要联网）\n\n' +
+        '如果想跑多文件源码版，先双击 <b>Start_Game.bat</b>，\n' +
+        '再访问 http://localhost:8080';
+    });
+  }
+</script>
+<script type="module" src="./src/main.js"></script>
+<script>
+  // 模块加载失败时给出可读的提示（最常见的是没通过 http 打开，直接 file:// 双击）
+  window.addEventListener('error', (e) => {
+    if (document.getElementById('loading').style.display === 'none') return;
+    const el = document.getElementById('loading');
+    el.style.color = '#ff9a9a';
+    el.style.whiteSpace = 'pre-wrap';
+    el.style.padding = '30px';
+    el.style.textAlign = 'center';
+    el.textContent = '启动失败：\n' + (e.message || e.error) +
+      '\n\n提示：ES 模块不能用 file:// 打开，请运行 Start_Game.bat（或 node server.mjs）后访问 http://localhost:8080';
+  });
+</script>
+</body>
+</html>

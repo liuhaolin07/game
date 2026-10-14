@@ -1,4 +1,4 @@
-#include "game.h"
+ï»¿#include "game.h"
 
 #include <algorithm>
 #include <chrono>
@@ -461,18 +461,55 @@ std::string Game::RenderText() const
     const std::string boardBottom = boardTop;
 
     std::vector<std::string> side;
-    side.push_back("²Ù×÷ËµÃ÷");
+
+    // å°†æ–¹å—æŒ‰æ—‹è½¬ 0 çš„å½¢çŠ¶è£å‰ªå‡ºåŒ…å›´ç›’ï¼Œç”Ÿæˆè¿·ä½ é¢„è§ˆè¡Œ
+    auto AppendPiecePreview = [&side, this](const char* label, int type)
+    {
+        side.push_back(label);
+        if (type < 0)
+        {
+            side.push_back("  (empty)");
+            return;
+        }
+
+        bool filled[4][4];
+        int minX = 4, maxX = -1, minY = 4, maxY = -1;
+        for (int py = 0; py < 4; ++py)
+        {
+            for (int px = 0; px < 4; ++px)
+            {
+                filled[py][px] = PieceFilled(type, 0, px, py);
+                if (filled[py][px])
+                {
+                    minX = std::min(minX, px);
+                    maxX = std::max(maxX, px);
+                    minY = std::min(minY, py);
+                    maxY = std::max(maxY, py);
+                }
+            }
+        }
+
+        for (int py = minY; py <= maxY; ++py)
+        {
+            std::string line;
+            for (int px = minX; px <= maxX; ++px)
+            {
+                line += filled[py][px] ? "[]" : "  ";
+            }
+            side.push_back(line);
+        }
+    };
+
+    side.push_back("æ“ä½œè¯´æ˜");
     side.push_back("----------------");
-    side.push_back("A / D  : ×óÓÒÒÆ¶¯");
-    side.push_back("W      : Ğı×ª");
-    side.push_back("S      : Èí½µ");
-    side.push_back("Space  : Ó²½µ");
-    side.push_back("C      : Hold");
-    side.push_back("P      : ÔİÍ£");
-    side.push_back("Q      : ÍË³ö");
+    side.push_back("AD å·¦å³ Wæ—‹è½¬ Sè½¯é™");
+    side.push_back("Space ç¡¬é™ C æš‚å­˜");
+    side.push_back("æ–¹å‘é”®åŒæ ·å¯ç”¨");
+    side.push_back("P æš‚åœ  Q é€€å‡º");
     side.push_back("");
-    side.push_back("Next: " + std::to_string(m_nextType));
-    side.push_back("Hold: " + std::to_string(m_holdType));
+    AppendPiecePreview("Next:", m_nextType);
+    side.push_back("");
+    AppendPiecePreview("Hold:", m_holdType);
 
     const int sideGap = 4;
     const int sideWidth = 24;
@@ -488,7 +525,7 @@ std::string Game::RenderText() const
     std::ostringstream oss;
     const std::string pad(leftPad, ' ');
 
-    // ·ÖÊıÔÚ×îÉÏ·½
+    // åˆ†æ•°åœ¨æœ€ä¸Šæ–¹
     oss << pad
         << "Score: " << m_score
         << "  Level: " << m_level
@@ -496,7 +533,7 @@ std::string Game::RenderText() const
         << "  Combo: " << m_combo
         << "\n\n";
 
-    // ¶¥±ß + ÓÒ²àµÚÒ»ĞĞ
+    // é¡¶è¾¹ + å³ä¾§ç¬¬ä¸€è¡Œ
     oss << pad << boardTop;
     if (!side.empty())
     {
@@ -504,7 +541,7 @@ std::string Game::RenderText() const
     }
     oss << "\n";
 
-    // ÆåÅÌĞĞ + ÓÒ²àËµÃ÷
+    // æ£‹ç›˜è¡Œ + å³ä¾§è¯´æ˜
     for (int y = 0; y < m_board.Height(); ++y)
     {
         oss << pad << "|";
@@ -539,7 +576,7 @@ std::string Game::RenderText() const
         oss << "\n";
     }
 
-    // µ×±ß
+    // åº•è¾¹
     oss << pad << boardBottom << "\n";
 
     return oss.str();

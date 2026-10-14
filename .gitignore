@@ -4,6 +4,7 @@
 *.user
 *.userosscache
 *.sln.docstates
+*.vcxproj.filters
 ipch/
 [Dd]ebug/
 [Rr]elease/
@@ -40,3 +41,5 @@ Breakout_Portable_Roadshow/
 # ---------- 游戏运行时数据 ----------
 highscore.dat
 leaderboard.txt
+save/
+snake_hiscore.txt

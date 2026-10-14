@@ -1,80 +1,149 @@
-#define _CRT_SECURE_NO_WARNINGS 1
-//º¯ÊıÓëÊı×éÊµ¼ù£ºÉ¨À×Ğ¡ÓÎÏ·
+ï»¿#define _CRT_SECURE_NO_WARNINGS 1
+// äºŒç»´æ•°ç»„ + å‡½æ•°å®è·µï¼šæ‰«é›·å°æ¸¸æˆ
+// æœ¬æ¬¡å‡çº§ï¼šæ’æ——ã€ç©ºç™½è‡ªåŠ¨å±•å¼€ã€è®¡æ—¶ã€ä¸‰æ¡£éš¾åº¦ã€é¦–ç‚¹ä¿æŠ¤
 
 #include "game.h"
 
 void menu()
 {
-	printf("***********************\n");
-	printf("***** 1. play *****\n");
-	printf("***** 0. exit *****\n");
-	printf("***********************\n");
+    printf("***********************\n");
+    printf("*****  1. play   *****\n");
+    printf("*****  0. exit   *****\n");
+    printf("***********************\n");
 }
 
-int SelectDifficulty()
+// é€‰æ‹©éš¾åº¦ï¼Œé€šè¿‡æŒ‡é’ˆå¸¦å›æ£‹ç›˜å°ºå¯¸ä¸é›·æ•°
+void SelectDifficulty(int* row, int* col, int* mine_count)
 {
-	int level = 0;
-	printf("ÇëÑ¡ÔñÄÑ¶È:\n");
-	printf("1. ¼òµ¥(10¸öÀ×)\n");
-	printf("2. ÖĞµÈ(15¸öÀ×)\n");
-	printf("3. À§ÄÑ(20¸öÀ×)\n");
-	printf("ÊäÈë:>");
-	scanf("%d", &level);
+    int level = 0;
+    printf("è¯·é€‰æ‹©éš¾åº¦:\n");
+    printf("1. ç®€å• (9 x 9 , 10 é›·)\n");
+    printf("2. ä¸­ç­‰ (12 x 12 , 26 é›·)\n");
+    printf("3. å›°éš¾ (16 x 16 , 50 é›·)\n");
+    printf("è¯·è¾“å…¥:>");
+    if (scanf("%d", &level) != 1)
+    {
+        level = 1;
+    }
+    {
+        int ch;
+        while ((ch = getchar()) != '\n' && ch != EOF)
+        {
+        }
+    }
 
-	switch (level)
-	{
-	case 1:
-		return EASY_COUNT;
-	case 2:
-		return MID_COUNT;
-	case 3:
-		return HARD_COUNT;
-	default:
-		printf("ÊäÈëÎŞĞ§£¬Ä¬ÈÏ¼òµ¥ÄÑ¶È\n");
-		return EASY_COUNT;
-	}
+    switch (level)
+    {
+    case 1:
+        *row = EASY_ROWS;
+        *col = EASY_COLS;
+        *mine_count = EASY_MINES;
+        break;
+    case 2:
+        *row = MID_ROWS;
+        *col = MID_COLS;
+        *mine_count = MID_MINES;
+        break;
+    case 3:
+        *row = HARD_ROWS;
+        *col = HARD_COLS;
+        *mine_count = HARD_MINES;
+        break;
+    default:
+        printf("è¾“å…¥æ— æ•ˆï¼Œé»˜è®¤ç®€å•éš¾åº¦\n");
+        *row = EASY_ROWS;
+        *col = EASY_COLS;
+        *mine_count = EASY_MINES;
+        break;
+    }
+}
+
+// è¯»å…¥é¦–æ¬¡ç‚¹å‡»åæ ‡ï¼ˆä¿è¯åˆæ³•ï¼‰ï¼ŒEOF æ—¶è¿”å› 0 è¡¨ç¤ºä¸­æ­¢
+int ReadFirstMove(int row, int col, int* x, int* y)
+{
+    printf("è¯·è¾“å…¥é¦–æ¬¡æ’æŸ¥åæ ‡ x(è¡Œ) y(åˆ—)ï¼ˆé¦–ç‚¹å¿…å®‰å…¨ï¼‰:>");
+    for (;;)
+    {
+        int n = scanf("%d %d", x, y);
+        if (n == EOF)
+        {
+            return 0;
+        }
+        if (n == 2 && *x >= 1 && *x <= row && *y >= 1 && *y <= col)
+        {
+            return 1;
+        }
+        printf("åæ ‡éæ³•ï¼Œé‡æ–°è¾“å…¥:>");
+        while (getchar() != '\n')
+        {
+            if (feof(stdin))
+            {
+                return 0;
+            }
+        }
+    }
 }
 
 void game()
 {
-	char mine[ROWS][COLS];//´æ·Å²¼ÖÃºÃµÄÀ×
-	char show[ROWS][COLS];//´æ·ÅÅÅ²é³öµÄÀ×µÄĞÅÏ¢
-	int mine_count = SelectDifficulty();
-	//³õÊ¼»¯ÆåÅÌ
-	//1. mineÊı×é×î¿ªÊ¼ÊÇÈ«'0'
-	//2. showÊı×é×î¿ªÊ¼ÊÇÈ«'*'
-	InitBoard(mine, ROWS, COLS, '0');
-	InitBoard(show, ROWS, COLS, '*');
-	//´òÓ¡ÆåÅÌ
-	//DisplayBoard(mine, ROW, COL);
-	DisplayBoard(show, ROW, COL);
-	//1. ²¼ÖÃÀ×
-	SetMine(mine, ROW, COL, mine_count);
-	//DisplayBoard(mine, ROW, COL);
-	//2. ÅÅ²éÀ×
-	FindMine(mine, show, ROW, COL, mine_count);
+    char mine[MAX_ROWS][MAX_COLS]; // å¸ƒå¥½é›·çš„æ£‹ç›˜
+    char show[MAX_ROWS][MAX_COLS]; // å±•ç¤ºç»™ç©å®¶çš„ä¿¡æ¯
+    int row = 0, col = 0, mine_count = 0;
+
+    SelectDifficulty(&row, &col, &mine_count);
+
+    InitBoard(mine, MAX_ROWS, MAX_COLS, '0');
+    InitBoard(show, MAX_ROWS, MAX_COLS, '*');
+    DisplayBoard(show, row, col, mine_count, 0);
+
+    // é¦–æ¬¡ç‚¹å‡»å®‰å…¨ï¼šå…ˆæ‹¿åæ ‡å†å¸ƒé›·
+    int first_x = 0, first_y = 0;
+    if (!ReadFirstMove(row, col, &first_x, &first_y))
+    {
+        printf("è¾“å…¥å·²ç»“æŸï¼Œé€€å‡ºæ¸¸æˆ\n");
+        return;
+    }
+    SetMine(mine, row, col, mine_count, first_x, first_y);
+
+    time_t start_time = time(NULL);
+    int win = FindMine(mine, show, row, col, mine_count, start_time);
+    int elapsed = (int)difftime(time(NULL), start_time);
+
+    MarkAllMines(mine, show, row, col);
+    DisplayBoard(show, row, col, win ? 0 : mine_count, elapsed);
+    printf("%sï¼ç”¨æ—¶ %d ç§’\n", win ? "æ’é›·æˆåŠŸ" : "æ¸¸æˆç»“æŸ", elapsed);
 }
+
 int main()
 {
-	int input = 0;
-	srand((unsigned int)time(NULL));
-	do
-	{
-		menu();
-		printf("ÇëÑ¡Ôñ:>");
-		scanf("%d", &input);
-		switch (input)
-		{
-		case 1:
-			game();
-			break;
-		case 0:
-			printf("ÍË³öÓÎÏ·\n");
-			break;
-		default:
-			printf("Ñ¡Ôñ´íÎó£¬ÖØĞÂÑ¡Ôñ\n");
-			break;
-		}
-	} while (input);
-	return 0;
+    int input = 0;
+    srand((unsigned int)time(NULL));
+    do
+    {
+        menu();
+        printf("è¯·é€‰æ‹©:>");
+        if (scanf("%d", &input) != 1)
+        {
+            input = 0; // EOF æˆ–éæ³•è¾“å…¥æ—¶é€€å‡º
+        }
+        {
+            int ch;
+            while ((ch = getchar()) != '\n' && ch != EOF)
+            {
+            }
+        }
+        switch (input)
+        {
+        case 1:
+            game();
+            break;
+        case 0:
+            printf("é€€å‡ºæ¸¸æˆ\n");
+            break;
+        default:
+            printf("é€‰æ‹©é”™è¯¯ï¼Œé‡æ–°é€‰æ‹©\n");
+            break;
+        }
+    } while (input);
+    return 0;
 }

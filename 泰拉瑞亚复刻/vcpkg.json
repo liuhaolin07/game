@@ -1,0 +1,6 @@
+{
+  "name": "terraria-clone",
+  "version-string": "1.0.0",
+  "description": "泰拉瑞亚复刻 - 2D 沙盒游戏。注意: 本工程已关闭 vcpkg 清单模式(VcpkgEnableManifest=false), 改用 lib/ 下的 raylib 官方预编译包, 因此这个文件不会被使用。依赖请运行 setup_raylib.bat 安装。",
+  "dependencies": []
+}

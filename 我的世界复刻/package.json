@@ -1,0 +1,14 @@
+{
+  "name": "minecraft-web",
+  "version": "2.0.0",
+  "description": "纯浏览器体素沙盒：15 种生物群系 + 洞穴矿脉 + 真实光照 + 原版挖掘手感",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "node server.mjs",
+    "test": "node test/headless.mjs && node --import ./test/register.mjs test/import-check.mjs && node --import ./test/register.mjs test/smoke.mjs",
+    "test:logic": "node test/headless.mjs",
+    "test:modules": "node --import ./test/register.mjs test/import-check.mjs",
+    "test:smoke": "node --import ./test/register.mjs test/smoke.mjs"
+  }
+}
